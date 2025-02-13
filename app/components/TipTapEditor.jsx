@@ -196,6 +196,15 @@ const EditorContainer = styled.div`
         background-color: #2563eb;
       }
     }
+
+    p.is-empty::before {
+      color: #9ca3af;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+      font-style: italic;
+    }
   }
 `
 
@@ -323,7 +332,10 @@ const TipTapEditor = ({ editMode }) => {
       }),
       Link,
       Placeholder.configure({
-        placeholder: 'Write something amazing...',
+        placeholder: 'Enter text or type "/" for commands...',
+        emptyNodeClass: 'is-empty',
+        showOnlyWhenEditable: true,
+        includeChildren: true,
       }),
       Subscript,
       Superscript,
@@ -358,7 +370,7 @@ const TipTapEditor = ({ editMode }) => {
     ],
     editable: true,
     injectCSS: false,
-    content: '<p>Type / for commands</p>',
+    content: '<p></p>',
     editorProps: {
       handleDrop: async (view, event, slice, moved) => {
         if (!moved && event.dataTransfer?.files?.length) {
