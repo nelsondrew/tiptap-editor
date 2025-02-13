@@ -30,12 +30,36 @@ export const ChartExtension = Node.create({
         }),
       },
       height: {
-        default: 200,
+        default: '400px',
         parseHTML: element => element.getAttribute('height'),
         renderHTML: attributes => ({
           height: attributes.height,
         }),
-      }
+      },
+      chartData: {
+        default: null,
+      },
+      caption: {
+        default: '',
+        parseHTML: element => element.getAttribute('data-caption'),
+        renderHTML: attributes => ({
+          'data-caption': attributes.caption,
+        }),
+      },
+      captionAlignment: {
+        default: 'bottom',
+        parseHTML: element => element.getAttribute('data-caption-alignment'),
+        renderHTML: attributes => ({
+          'data-caption-alignment': attributes.captionAlignment,
+        }),
+      },
+      captionWidth: {
+        default: '20%',
+        parseHTML: element => element.getAttribute('data-caption-width'),
+        renderHTML: attributes => ({
+          'data-caption-width': attributes.captionWidth,
+        }),
+      },
     }
   },
 
@@ -78,6 +102,17 @@ export const ChartExtension = Node.create({
         }
         return false
       }
+    }
+  },
+
+  addCommands() {
+    return {
+      deleteChart: () => ({ commands }) => {
+        return commands.deleteNode('chart')
+      },
+      setChartCaption: caption => ({ commands }) => {
+        return commands.updateAttributes('chart', { caption })
+      },
     }
   },
 }) 
