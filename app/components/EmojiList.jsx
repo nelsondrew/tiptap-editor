@@ -49,6 +49,16 @@ const EmojiItem = styled.button`
   .emoji {
     font-size: 1.25rem;
     min-width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 1.5rem;
+      height: 1.5rem;
+      object-fit: contain;
+    }
   }
 
   .name {
@@ -63,7 +73,11 @@ export const EmojiList = forwardRef((props, ref) => {
   const selectItem = (index) => {
     const item = props.items[index]
     if (item) {
-      props.command({ emoji: item.emoji })
+      props.command({
+        emoji: item.emoji,
+        name: item.name,
+        isCustom: item.isCustom
+      })
     }
   }
 
@@ -97,7 +111,13 @@ export const EmojiList = forwardRef((props, ref) => {
           onClick={() => selectItem(index)}
           onMouseEnter={() => setSelectedIndex(index)}
         >
-          <span className="emoji">{item.emoji}</span>
+          <span className="emoji">
+            {item.isCustom ? (
+              <img src={item.emoji} alt={item.name} />
+            ) : (
+              item.emoji
+            )}
+          </span>
           <span className="name">{item.name}</span>
         </EmojiItem>
       ))}

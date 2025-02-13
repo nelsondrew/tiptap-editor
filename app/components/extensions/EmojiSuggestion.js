@@ -4,11 +4,13 @@ import { ReactRenderer } from '@tiptap/react'
 import Suggestion from '@tiptap/suggestion'
 import tippy from 'tippy.js'
 import { EmojiList } from '../EmojiList'
+import { customEmojiStorage } from '../../utils/customEmojiStorage'
+import { CustomEmoji } from './CustomEmojiExtension'
 
 // Create a unique plugin key
 const suggestionPluginKey = new PluginKey('emojiSuggestion')
 
-const emojiList = [
+const baseEmojiList = [
   { name: 'smile', emoji: '😊' },
   { name: 'laugh', emoji: '😂' },
   { name: 'heart', emoji: '❤️' },
@@ -36,6 +38,12 @@ const emojiList = [
   // Add more emojis as needed
 ]
 
+// Function to get combined emoji list
+const getFullEmojiList = () => {
+  const customEmojis = customEmojiStorage.get()
+  return [...baseEmojiList, ...customEmojis]
+}
+
 export const EmojiSuggestion = Extension.create({
   name: 'emojiSuggestion',
 
@@ -46,16 +54,35 @@ export const EmojiSuggestion = Extension.create({
         editor: this.editor,
         char: ':',
         items: ({ query }) => {
-          return emojiList
+          const fullList = getFullEmojiList()
+          return fullList
             .filter(({ name }) => name.toLowerCase().startsWith(query.toLowerCase()))
             .slice(0, 10)
         },
         command: ({ editor, range, props }) => {
+          // Handle both deletion and insertion in a single chain
           editor
             .chain()
             .focus()
-            .deleteRange(range)
-            .insertContent(props.emoji)
+            // Delete from before the ':' character to the end of the matched text
+            .deleteRange({
+              from: range.from - 1,  // Start from before the ':' character
+              to: range.to
+            })
+            // Insert the emoji immediately after deletion
+            .insertContent(
+              props.isCustom
+                ? {
+                    type: 'customEmoji',
+                    attrs: {
+                      src: props.emoji,
+                      name: props.name,
+                    }
+                  }
+                : props.emoji
+            )
+            // Add a zero-width space after emoji to prevent typography rules from triggering
+            .insertContent('\u200B')
             .run()
         },
         render: () => {
@@ -65,14 +92,13 @@ export const EmojiSuggestion = Extension.create({
 
           return {
             onStart: props => {
-              suggestionProps = props  // Store the props for later use
+              suggestionProps = props
               component = new ReactRenderer(EmojiList, {
                 props: {
                   ...props,
                   items: props.items,
-                  command: ({ emoji }) => {
-                    console.log("triggered")
-                    props.command({ emoji })
+                  command: (item) => {
+                    props.command(item)
                     popup?.[0].hide()
                   }
                 },
@@ -91,12 +117,12 @@ export const EmojiSuggestion = Extension.create({
               })
             },
             onUpdate(props) {
-              suggestionProps = props  // Update stored props
+              suggestionProps = props
               component?.updateProps({
                 ...props,
                 items: props.items,
-                command: ({ emoji }) => {
-                  props.command({ emoji })
+                command: (item) => {
+                  props.command(item)
                   popup?.[0].hide()
                 }
               })
@@ -116,7 +142,7 @@ export const EmojiSuggestion = Extension.create({
                 event.preventDefault()
                 const selectedItem = component?.ref?.getCurrentItem()
                 if (selectedItem && suggestionProps?.command) {
-                  suggestionProps.command({ emoji: selectedItem.emoji })
+                  suggestionProps.command(selectedItem)
                   popup?.[0].hide()
                 }
                 return true

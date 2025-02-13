@@ -30,6 +30,10 @@ import { ChartBubbleMenu } from './ChartBubbleMenu'
 import { EmojiSuggestion } from './extensions/EmojiSuggestion'
 import { TextBubbleMenu } from './TextBubbleMenu'
 import { FontSize } from './extensions/FontSizeExtension'
+import { CustomEmojiUploader } from './CustomEmojiUploader'
+import { CustomEmoji } from './extensions/CustomEmojiExtension'
+import { AddEmojiModal } from './AddEmojiModal'
+import { customEmojiStorage } from '../utils/customEmojiStorage'
 
 const EditorContainer = styled.div`
   margin: 20px;
@@ -207,6 +211,22 @@ const EditorContainer = styled.div`
       pointer-events: none;
       font-style: italic;
     }
+
+    .custom-emoji {
+      display: inline;
+      height: 1.25em;
+      width: auto;
+      vertical-align: text-bottom;
+      object-fit: contain;
+    }
+
+    h1 .custom-emoji {
+      height: 1.25em;
+    }
+
+    h2 .custom-emoji {
+      height: 1.25em;
+    }
   }
 `
 
@@ -277,6 +297,7 @@ const HiddenInput = styled.input`
 
 const TipTapEditor = ({ editMode }) => {
   const [isMounted, setIsMounted] = useState(false)
+  const [isEmojiModalOpen, setIsEmojiModalOpen] = useState(false)
 
   const editor = useEditor({
     extensions: [
@@ -319,7 +340,9 @@ const TipTapEditor = ({ editMode }) => {
       TextStyle.configure({
         types: ['textStyle']
       }),
-      Typography,
+      Typography.configure({
+        spaces: false,
+      }),
       SlashCommand.configure({
         suggestion: {
           items: getSuggestionItems,
@@ -327,6 +350,7 @@ const TipTapEditor = ({ editMode }) => {
         },
       }),
       ChartExtension,
+      CustomEmoji,
       EmojiSuggestion,
     ],
     editable: true,
@@ -348,6 +372,21 @@ const TipTapEditor = ({ editMode }) => {
 
   const insertTable = () => {
     editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+  }
+
+  const handleCustomEmojiAdded = async (newEmoji) => {
+    try {
+      // Add to storage
+      const updatedEmojis = customEmojiStorage.add(newEmoji)
+      
+      // Force editor to re-render emoji suggestions
+      editor.commands.focus()
+      
+      return updatedEmojis
+    } catch (error) {
+      console.error('Error adding custom emoji:', error)
+      throw error // Re-throw to be handled by the modal
+    }
   }
 
   return (
@@ -478,9 +517,17 @@ const TipTapEditor = ({ editMode }) => {
             Delete Table
           </Button>
         </div>
+        <Button onClick={() => setIsEmojiModalOpen(true)}>
+          Add Emoji
+        </Button>
       </MenuBar>
       {editor && <TextBubbleMenu editor={editor} />}
       {editor && <ChartBubbleMenu editor={editor} />}
+      <AddEmojiModal
+        isOpen={isEmojiModalOpen}
+        onClose={() => setIsEmojiModalOpen(false)}
+        onEmojiAdded={handleCustomEmojiAdded}
+      />
       <EditorContent editor={editor} />
     </EditorContainer>
   )

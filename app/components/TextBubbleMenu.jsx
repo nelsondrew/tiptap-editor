@@ -110,7 +110,17 @@ export const TextBubbleMenu = ({ editor }) => {
         placement: 'top',
       }}
       shouldShow={({ editor, view, state, oldState, from, to }) => {
-        return from !== to
+        if (from === to) {
+          return false
+        }
+
+        const isChartSelected = editor.isActive('chart')
+        if (isChartSelected) {
+          return false
+        }
+
+        const isTextSelection = editor.state.doc.textBetween(from, to).length > 0
+        return isTextSelection
       }}
     >
       <MenuContainer>
