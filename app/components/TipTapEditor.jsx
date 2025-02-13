@@ -227,6 +227,14 @@ const EditorContainer = styled.div`
     h2 .custom-emoji {
       height: 1.25em;
     }
+
+    .chart-caption {
+      text-align: center;
+      color: #4b5563;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
   }
 `
 
