@@ -60,16 +60,24 @@ export const EmojiSuggestion = Extension.create({
             .slice(0, 10)
         },
         command: ({ editor, range, props }) => {
+          // First, check if there are multiple spaces before the emoji trigger
+          const textBefore = editor.state.doc.textBetween(
+            Math.max(0, range.from - 3),
+            range.from - 1
+          )
+          
           // Handle both deletion and insertion in a single chain
           editor
             .chain()
             .focus()
-            // Delete from before the ':' character to the end of the matched text
+            // If there are multiple spaces before, include them in the deletion range
             .deleteRange({
-              from: range.from - 1,  // Start from before the ':' character
+              from: textBefore.endsWith('  ') ? range.from - 3 : range.from - 1,
               to: range.to
             })
-            // Insert the emoji immediately after deletion
+            // Insert a single space if we deleted multiple spaces
+            .insertContent(textBefore.endsWith('  ') ? ' ' : '')
+            // Insert the emoji
             .insertContent(
               props.isCustom
                 ? {
@@ -81,7 +89,7 @@ export const EmojiSuggestion = Extension.create({
                   }
                 : props.emoji
             )
-            // Add a zero-width space after emoji to prevent typography rules from triggering
+            // Add a zero-width space after emoji
             .insertContent('\u200B')
             .run()
         },

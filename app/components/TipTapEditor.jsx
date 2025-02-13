@@ -304,7 +304,8 @@ const TipTapEditor = ({ editMode }) => {
       StarterKit.configure({
         heading: {
           levels: [1, 2]
-        }
+        },
+        typography: false,
       }),
       Color,
       FontFamily,
@@ -342,6 +343,11 @@ const TipTapEditor = ({ editMode }) => {
       }),
       Typography.configure({
         spaces: false,
+        quotes: false,
+        apostrophe: false,
+        ellipsis: false,
+        emDash: false,
+        enDash: false,
       }),
       SlashCommand.configure({
         suggestion: {
