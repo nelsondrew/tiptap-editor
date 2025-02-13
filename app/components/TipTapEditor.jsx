@@ -264,7 +264,7 @@ const HiddenInput = styled.input`
   display: none;
 `
 
-const TipTapEditor = () => {
+const TipTapEditor = ({ editMode }) => {
   const [isMounted, setIsMounted] = useState(false)
   const fileInputRef = useRef(null)
   
@@ -449,7 +449,7 @@ const TipTapEditor = () => {
 
   return (
     <EditorContainer>
-      <MenuBar>
+      <MenuBar style={{ display: editMode ? 'flex' : 'none' }}>
         <Button
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}
