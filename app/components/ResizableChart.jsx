@@ -3,6 +3,8 @@
 import { Resizable } from 're-resizable'
 import { NodeViewWrapper } from '@tiptap/react'
 import styled from 'styled-components'
+import { useState, useEffect } from 'react'
+import { DeleteConfirmationModal } from './DeleteConfirmationModal'
 
 const ChartContainer = styled.div`
   margin: 1rem 0;
@@ -54,8 +56,25 @@ const Chart = styled.div`
   }
 `
 
-export const ResizableChart = ({ node, selected, updateAttributes }) => {
+export const ResizableChart = ({ node, selected, updateAttributes, deleteNode }) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const alignment = node.attrs.alignment || 'center'
+
+  useEffect(() => {
+    const handleDeleteRequest = (event) => {
+      if (selected) {
+        setShowDeleteModal(true)
+      }
+    }
+
+    window.addEventListener('chart-delete-request', handleDeleteRequest)
+    return () => window.removeEventListener('chart-delete-request', handleDeleteRequest)
+  }, [selected])
+
+  const handleConfirmDelete = () => {
+    deleteNode()
+    setShowDeleteModal(false)
+  }
 
   const handleResize = (e, direction, ref, d) => {
     // Keep selection during resize
@@ -146,6 +165,12 @@ export const ResizableChart = ({ node, selected, updateAttributes }) => {
           </Chart>
         </Resizable>
       </ChartContainer>
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
     </NodeViewWrapper>
   )
 } 
