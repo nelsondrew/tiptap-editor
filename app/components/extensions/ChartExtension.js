@@ -54,4 +54,30 @@ export const ChartExtension = Node.create({
   addNodeView() {
     return ReactNodeViewRenderer(ResizableChart)
   },
+
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        if (editor.isActive(this.name)) {
+          // Dispatch a custom event that the ResizableChart component will listen for
+          const event = new CustomEvent('chart-delete-request', {
+            detail: { position: editor.state.selection.$from.pos }
+          })
+          window.dispatchEvent(event)
+          return true // Prevent default backspace behavior
+        }
+        return false
+      },
+      Delete: ({ editor }) => {
+        if (editor.isActive(this.name)) {
+          const event = new CustomEvent('chart-delete-request', {
+            detail: { position: editor.state.selection.$from.pos }
+          })
+          window.dispatchEvent(event)
+          return true
+        }
+        return false
+      }
+    }
+  },
 }) 
