@@ -5,7 +5,6 @@ import StarterKit from '@tiptap/starter-kit'
 import Color from '@tiptap/extension-color'
 import FontFamily from '@tiptap/extension-font-family'
 import Highlight from '@tiptap/extension-highlight'
-import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Subscript from '@tiptap/extension-subscript'
@@ -29,6 +28,8 @@ import { ImagePlaceholderExtension } from './extensions/ImagePlaceholderExtensio
 import { ChartExtension } from './extensions/ChartExtension'
 import { ChartBubbleMenu } from './ChartBubbleMenu'
 import { EmojiSuggestion } from './extensions/EmojiSuggestion'
+import { TextBubbleMenu } from './TextBubbleMenu'
+import { FontSize } from './extensions/FontSizeExtension'
 
 const EditorContainer = styled.div`
   margin: 20px;
@@ -276,46 +277,10 @@ const HiddenInput = styled.input`
 
 const TipTapEditor = ({ editMode }) => {
   const [isMounted, setIsMounted] = useState(false)
-  const fileInputRef = useRef(null)
-  
-  const handleImageUpload = useCallback(async (file) => {
-    try {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        throw new Error('Please upload an image file')
-      }
-
-      // Validate file size (e.g., 5MB limit)
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      if (file.size > maxSize) {
-        throw new Error('File size should be less than 5MB')
-      }
-
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Upload failed')
-      }
-
-      const data = await response.json()
-      return data.url // The URL will be relative (/uploads/filename)
-    } catch (error) {
-      console.error('Error uploading image:', error)
-      throw error // Re-throw to handle in the calling function
-    }
-  }, [])
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Disable any extensions that might cause SSR issues
         heading: {
           levels: [1, 2]
         }
@@ -323,15 +288,10 @@ const TipTapEditor = ({ editMode }) => {
       Color,
       FontFamily,
       Highlight,
-      Image.configure({
-        HTMLAttributes: {
-          class: 'resizable-image',
-        },
-        resizable: true,
-        allowBase64: true,
-        nodeViewRenderer: ReactNodeViewRenderer(ImageResizeWrapper),
-      }),
       Link,
+      FontSize.configure({
+        types: ['textStyle'],
+      }),
       Placeholder.configure({
         placeholder: 'Enter text or type "/" for commands...',
         emptyNodeClass: 'is-empty',
@@ -356,7 +316,9 @@ const TipTapEditor = ({ editMode }) => {
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      TextStyle,
+      TextStyle.configure({
+        types: ['textStyle']
+      }),
       Typography,
       SlashCommand.configure({
         suggestion: {
@@ -364,89 +326,16 @@ const TipTapEditor = ({ editMode }) => {
           render: renderItems,
         },
       }),
-      ImagePlaceholderExtension.configure({
-        immediatelyRender: false,
-      }),
       ChartExtension,
       EmojiSuggestion,
     ],
     editable: true,
     injectCSS: false,
     content: '<p></p>',
-    editorProps: {
-      handleDrop: async (view, event, slice, moved) => {
-        if (!moved && event.dataTransfer?.files?.length) {
-          const file = event.dataTransfer.files[0]
-          if (file.type.startsWith('image/')) {
-            try {
-              const url = await handleImageUpload(file)
-              if (url) {
-                const { tr } = view.state
-                const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })
-                if (pos) {
-                  view.dispatch(tr.insert(pos.pos, editor.schema.nodes.image.create({ src: url })))
-                }
-              }
-            } catch (error) {
-              console.error('Error uploading dropped image:', error)
-              alert(error.message || 'Failed to upload image')
-            }
-            return true
-          }
-        }
-        return false
-      },
-      handlePaste: async (view, event) => {
-        if (event.clipboardData?.files?.length) {
-          const file = event.clipboardData.files[0]
-          if (file.type.startsWith('image/')) {
-            try {
-              const url = await handleImageUpload(file)
-              if (url) {
-                editor.chain().focus().setImage({ src: url }).run()
-              }
-            } catch (error) {
-              console.error('Error uploading pasted image:', error)
-              alert(error.message || 'Failed to upload image')
-            }
-            return true
-          }
-        }
-        return false
-      },
-    },
     onCreate() {
       setIsMounted(true)
     },
   })
-
-  const handleImageAdd = async (source) => {
-    if (!editor) return
-
-    try {
-      if (typeof source === 'string') {
-        // It's a URL
-        await editor.chain()
-          .focus()
-          .setImage({ src: source })
-          .deleteSelection()
-          .run()
-      } else {
-        // It's a file
-        const url = await handleImageUpload(source)
-        if (url) {
-          await editor.chain()
-            .focus()
-            .setImage({ src: url })
-            .deleteSelection()
-            .run()
-        }
-      }
-    } catch (error) {
-      console.error('Error handling file:', error)
-      alert(error.message || 'Failed to upload image')
-    }
-  }
 
   // Don't render until client-side
   if (!isMounted) {
@@ -589,17 +478,8 @@ const TipTapEditor = ({ editMode }) => {
             Delete Table
           </Button>
         </div>
-        <Button onClick={() => {
-          editor.chain().focus().insertContent({
-            type: 'imagePlaceholder',
-            attrs: {
-              onImageAdd: handleImageAdd
-            }
-          }).run()
-        }}>
-          Add Image
-        </Button>
       </MenuBar>
+      {editor && <TextBubbleMenu editor={editor} />}
       {editor && <ChartBubbleMenu editor={editor} />}
       <EditorContent editor={editor} />
     </EditorContainer>
