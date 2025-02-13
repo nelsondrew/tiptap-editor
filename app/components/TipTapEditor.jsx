@@ -28,6 +28,7 @@ import { ImagePlaceholder } from './ImagePlaceholder'
 import { ImagePlaceholderExtension } from './extensions/ImagePlaceholderExtension'
 import { ChartExtension } from './extensions/ChartExtension'
 import { ChartBubbleMenu } from './ChartBubbleMenu'
+import { EmojiSuggestion } from './extensions/EmojiSuggestion'
 
 const EditorContainer = styled.div`
   margin: 20px;
@@ -367,6 +368,7 @@ const TipTapEditor = ({ editMode }) => {
         immediatelyRender: false,
       }),
       ChartExtension,
+      EmojiSuggestion,
     ],
     editable: true,
     injectCSS: false,
