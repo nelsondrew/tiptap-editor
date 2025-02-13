@@ -367,13 +367,20 @@ const TipTapEditor = ({ editMode }) => {
       CustomEmoji,
       EmojiSuggestion,
     ],
-    editable: true,
+    editable: editMode,
     injectCSS: false,
     content: '<p></p>',
     onCreate() {
       setIsMounted(true)
     },
   })
+
+  // Add this useEffect to update editable state when editMode changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(editMode)
+    }
+  }, [editor, editMode])
 
   // Don't render until client-side
   if (!isMounted) {
