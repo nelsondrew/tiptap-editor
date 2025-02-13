@@ -54,7 +54,7 @@ export const ChartExtension = Node.create({
         }),
       },
       captionWidth: {
-        default: '200px',
+        default: '20%',
         parseHTML: element => element.getAttribute('data-caption-width'),
         renderHTML: attributes => ({
           'data-caption-width': attributes.captionWidth,

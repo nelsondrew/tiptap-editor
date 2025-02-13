@@ -173,7 +173,7 @@ export const ChartBubbleMenu = ({ editor }) => {
         onSave={handleSaveCaption}
         initialCaption={editor.getAttributes('chart').caption || ''}
         chartAlignment={currentAlignment}
-        initialWidth={editor.getAttributes('chart').captionWidth || '200px'}
+        initialWidth={editor.getAttributes('chart').captionWidth || '20%'}
       />
     </>
   )

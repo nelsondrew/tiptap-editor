@@ -1,7 +1,7 @@
 'use client'
 
 import styled from 'styled-components'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const Overlay = styled.div`
   position: fixed;
@@ -121,32 +121,51 @@ const WidthButton = styled.button`
   }
 `
 
-export const CaptionModal = ({ isOpen, onClose, onSave, initialCaption = '', chartAlignment = 'center', initialWidth = '200px' }) => {
+export const CaptionModal = ({ isOpen, onClose, onSave, initialCaption = '', chartAlignment = 'center', initialWidth = '20%' }) => {
   const [caption, setCaption] = useState(initialCaption)
   const [width, setWidth] = useState(initialWidth)
   const isSideCaption = chartAlignment === 'left' || chartAlignment === 'right'
+
+  useEffect(() => {
+    if (isOpen) {
+      setCaption(initialCaption)
+      setWidth(initialWidth)
+    }
+  }, [isOpen, initialCaption, initialWidth])
 
   if (!isOpen) return null
 
   const handleSubmit = (e) => {
     e.preventDefault()
     onSave({
-      caption,
+      caption: caption || '', // Remove the trim() to preserve whitespace
       width: isSideCaption ? width : '100%'
     })
     onClose()
   }
 
+  const handleClose = () => {
+    onClose()
+  }
+
+  const handleCaptionChange = (e) => {
+    // Preserve all whitespace including newlines
+    setCaption(e.target.value)
+  }
+
   return (
-    <Overlay onClick={onClose}>
+    <Overlay onClick={handleClose}>
       <ModalContainer onClick={e => e.stopPropagation()}>
         <Title>Add Caption</Title>
         <form onSubmit={handleSubmit}>
           <TextArea
             placeholder="Enter caption..."
             value={caption}
-            onChange={(e) => setCaption(e.target.value)}
+            onChange={handleCaptionChange}
             autoFocus
+            spellCheck="true"
+            wrap="soft"
+            style={{ whiteSpace: 'pre-wrap' }} // Preserve whitespace and line breaks
           />
           {isSideCaption && (
             <WidthOptions>
@@ -154,22 +173,22 @@ export const CaptionModal = ({ isOpen, onClose, onSave, initialCaption = '', cha
               <WidthButtonGroup>
                 <WidthButton
                   type="button"
-                  $active={width === '200px'}
-                  onClick={() => setWidth('200px')}
+                  $active={width === '20%'}
+                  onClick={() => setWidth('20%')}
                 >
                   Narrow
                 </WidthButton>
                 <WidthButton
                   type="button"
-                  $active={width === '400px'}
-                  onClick={() => setWidth('400px')}
+                  $active={width === '40%'}
+                  onClick={() => setWidth('40%')}
                 >
                   Medium
                 </WidthButton>
                 <WidthButton
                   type="button"
-                  $active={width === '800px'}
-                  onClick={() => setWidth('800px')}
+                  $active={width === '70%'}
+                  onClick={() => setWidth('70%')}
                 >
                   Wide
                 </WidthButton>
@@ -177,7 +196,7 @@ export const CaptionModal = ({ isOpen, onClose, onSave, initialCaption = '', cha
             </WidthOptions>
           )}
           <ButtonGroup>
-            <Button type="button" onClick={onClose}>
+            <Button type="button" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit" $primary>

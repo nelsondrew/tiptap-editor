@@ -73,9 +73,19 @@ const Caption = styled.div`
   font-size: 0.875rem;
   font-style: italic;
   order: ${props => props.captionAlignment === 'left' ? -1 : 0};
-  width: ${props => props.captionAlignment === 'bottom' ? '100%' : props.width || '200px'};
+  width: ${props => {
+    if (props.captionAlignment === 'bottom') return '100%';
+    if (props.captionAlignment === 'left' || props.captionAlignment === 'right') {
+      if(props.width !== '100%') {
+        return props.width;
+      }
+      return '200px';
+    }
+    return '200px'; // fallback
+  }};
   flex-shrink: 0;
   text-align: ${props => props.captionAlignment === 'bottom' ? 'center' : 'left'};
+  white-space: pre-wrap;
 `
 
 const CaptionSizeControl = styled.div`
