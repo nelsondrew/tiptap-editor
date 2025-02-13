@@ -27,6 +27,7 @@ import { ImageResizeWrapper } from './ImageResizeWrapper'
 import { ImagePlaceholder } from './ImagePlaceholder'
 import { ImagePlaceholderExtension } from './extensions/ImagePlaceholderExtension'
 import { ChartExtension } from './extensions/ChartExtension'
+import { ChartBubbleMenu } from './ChartBubbleMenu'
 
 const EditorContainer = styled.div`
   margin: 20px;
@@ -157,7 +158,6 @@ const EditorContainer = styled.div`
       background: #f8fafc;
       border: 2px solid #e2e8f0;
       border-radius: 8px;
-      margin: 1rem 0;
       font-weight: 500;
       color: #475569;
       text-align: center;
@@ -447,25 +447,6 @@ const TipTapEditor = () => {
     editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
   }
 
-  const setChartAlignment = (alignment) => {
-    // Get the selected node
-    const node = editor.state.selection.$anchor.node()
-    
-    // If we're not in a chart node, try to find one in the selection
-    if (node.type.name !== 'chart') {
-      const { state } = editor
-      state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
-        if (node.type.name === 'chart') {
-          editor.commands.updateAttributes('chart', { alignment })
-          return false
-        }
-      })
-    } else {
-      // If we're directly in a chart node, update it
-      editor.commands.updateAttributes('chart', { alignment })
-    }
-  }
-
   return (
     <EditorContainer>
       <MenuBar>
@@ -604,47 +585,8 @@ const TipTapEditor = () => {
         }}>
           Add Image
         </Button>
-        <div className="chart-controls" style={{ display: 'flex', gap: '4px' }}>
-          <Button
-            onClick={() => setChartAlignment('left')}
-            active={editor.isActive('chart') && editor.getAttributes('chart').alignment === 'left'}
-            title="Align chart left"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '16px', height: '16px' }}>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="12" x2="15" y2="12"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </Button>
-          <Button
-            onClick={() => setChartAlignment('center')}
-            active={editor.isActive('chart') && editor.getAttributes('chart').alignment === 'center'}
-            title="Center chart"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '16px', height: '16px' }}>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="6" y1="12" x2="18" y2="12"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </Button>
-          <Button
-            onClick={() => setChartAlignment('right')}
-            active={editor.isActive('chart') && editor.getAttributes('chart').alignment === 'right'}
-            title="Align chart right"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '16px', height: '16px' }}>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="9" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </Button>
-        </div>
-        <Button
-          onClick={() => editor.chain().focus().insertContent({ type: 'chart' }).run()}
-        >
-          Add Chart
-        </Button>
       </MenuBar>
+      {editor && <ChartBubbleMenu editor={editor} />}
       <EditorContent editor={editor} />
     </EditorContainer>
   )

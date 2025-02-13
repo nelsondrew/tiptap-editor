@@ -32,21 +32,45 @@ const Chart = styled.div`
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 1rem;
   cursor: pointer;
+  position: relative;
 
   &:hover {
     border-color: #cbd5e1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    & ~ .resize-handle {
+      opacity: 0.5;
+    }
   }
 
   &.ProseMirror-selectednode {
     border-color: #3b82f6;
     outline: 2px solid rgba(59, 130, 246, 0.2);
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+
+    & ~ .resize-handle {
+      opacity: 1;
+    }
   }
 `
 
 export const ResizableChart = ({ node, selected, updateAttributes }) => {
   const alignment = node.attrs.alignment || 'center'
+
+  const handleResize = (e, direction, ref, d) => {
+    // Keep selection during resize
+    if (selected) {
+      updateAttributes({ selected: true })
+    }
+  }
+
+  const handleResizeStop = (e, direction, ref, d) => {
+    updateAttributes({
+      width: ref.style.width,
+      height: ref.style.height,
+      selected: true // Keep selection after resize
+    })
+  }
 
   return (
     <NodeViewWrapper>
@@ -71,21 +95,38 @@ export const ResizableChart = ({ node, selected, updateAttributes }) => {
           }}
           handleStyles={{
             right: { 
-              width: '8px',
-              right: '-4px',
-              cursor: 'ew-resize'
+              width: '2px',
+              right: '-1px',
+              top: '0',
+              bottom: '0',
+              cursor: 'ew-resize',
+              background: selected ? '#3b82f6' : '#e2e8f0',
+              border: 'none',
+              transition: 'all 0.2s ease',
+              opacity: 0
             },
             bottom: { 
-              height: '8px',
-              bottom: '-4px',
-              cursor: 'ns-resize'
+              height: '2px',
+              bottom: '-1px',
+              left: '0',
+              right: '0',
+              cursor: 'ns-resize',
+              background: selected ? '#3b82f6' : '#e2e8f0',
+              border: 'none',
+              transition: 'all 0.2s ease',
+              opacity: 0
             },
             bottomRight: { 
-              width: '12px',
-              height: '12px',
-              bottom: '-6px',
-              right: '-6px',
-              cursor: 'nwse-resize'
+              width: '6px',
+              height: '6px',
+              bottom: '-2px',
+              right: '-2px',
+              cursor: 'nwse-resize',
+              background: selected ? '#3b82f6' : '#e2e8f0',
+              border: 'none',
+              borderRadius: '50%',
+              transition: 'all 0.2s ease',
+              opacity: 0
             },
           }}
           handleClasses={{
@@ -93,9 +134,13 @@ export const ResizableChart = ({ node, selected, updateAttributes }) => {
             bottom: 'resize-handle',
             bottomRight: 'resize-handle',
           }}
+          onResize={handleResize}
+          onResizeStop={handleResizeStop}
         >
           <Chart 
             className={selected ? 'ProseMirror-selectednode' : ''}
+            data-type="chart"
+            onClick={() => updateAttributes({ selected: true })}
           >
             Chart
           </Chart>
